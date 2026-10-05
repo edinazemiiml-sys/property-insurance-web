@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asistenti për Sigurimin e Pronës</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f4f7fb;color:#172033}.app{max-width:1050px;margin:0 auto;height:100vh;display:flex;flex-direction:column}.header{padding:22px 24px 16px;background:white;border-bottom:1px solid #e6eaf0}.brand{font-size:22px;font-weight:700}.sub{color:#6b7280;margin-top:5px;font-size:14px}.status{font-size:13px;margin-top:12px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:7px}.chat{flex:1;overflow:auto;padding:28px 20px}.msg{max-width:820px;margin:0 auto 18px;display:flex}.bubble{padding:15px 17px;border-radius:16px;line-height:1.55;white-space:pre-wrap}.user{justify-content:flex-end}.user .bubble{background:#172033;color:white;max-width:75%;border-bottom-right-radius:5px}.assistant .bubble{background:white;border:1px solid #e3e7ee;max-width:85%;border-bottom-left-radius:5px;box-shadow:0 2px 8px #1720330a}.welcome{max-width:820px;margin:45px auto;text-align:center}.welcome h1{font-size:30px;margin-bottom:10px}.welcome p{color:#697386}.examples{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:22px}.example{border:1px solid #dce2ea;background:white;border-radius:20px;padding:9px 13px;cursor:pointer;color:#354052}.example:hover{background:#f0f3f8}.composer{background:white;border-top:1px solid #e6eaf0;padding:15px 20px}.form{max-width:820px;margin:auto;display:flex;gap:10px}.input{flex:1;border:1px solid #d8dee8;border-radius:14px;padding:14px 16px;font-size:15px;outline:none}.input:focus{border-color:#7b8798}.send{border:0;border-radius:14px;background:#172033;color:white;padding:0 21px;font-weight:600;cursor:pointer}.send:disabled{opacity:.5}.foot{text-align:center;color:#8992a1;font-size:11px;margin-top:9px}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header"><div class="brand">🏠 Asistenti për Sigurimin e Pronës</div><div class="sub">Informacion para se të siguroni pronën</div><div class="status" id="status"><span class="dot"></span>Po përgatiten Kushtet e Përgjithshme...</div></header>
+<main class="chat" id="chat"><div class="welcome" id="welcome"><h1>Çfarë dëshironi të dini?</h1><p>Pyet për mbulimet, rreziqet, përjashtimet, kushtet dhe situata konkrete që lidhen me sigurimin e pronës.</p><div class="examples"><button class="example">A mbulohet dëmi nga vërshimi?</button><button class="example">Çka konsiderohet stuhi?</button><button class="example">A mbulohet dëmi nga uji i gypave?</button><button class="example">Çka nuk mbulohet te breshëri?</button></div></div></main>
+<footer class="composer"><form class="form" id="form"><input class="input" id="input" autocomplete="off" placeholder="Shkruaj pyetjen tënde..."/><button class="send" id="send">Dërgo</button></form><div class="foot">Created by Edin · Informacion orientues bazuar në Kushtet e Përgjithshme</div></footer>
+</div>
+<script>
+const chat=document.getElementById('chat'),input=document.getElementById('input'),send=document.getElementById('send'),statusEl=document.getElementById('status'),welcome=document.getElementById('welcome');
+function add(text,who){welcome?.remove();const row=document.createElement('div');row.className='msg '+who;const b=document.createElement('div');b.className='bubble';b.textContent=text;row.appendChild(b);chat.appendChild(row);chat.scrollTop=chat.scrollHeight;return b}
+async function status(){try{const r=await fetch('/api/status');const d=await r.json();statusEl.innerHTML='<span class="dot" style="background:'+(d.ready?'#16a34a':'#dc2626')+'"></span>'+d.message;send.disabled=!d.ready}catch{statusEl.textContent='Serveri nuk është i disponueshëm.';send.disabled=true}}
+async function ask(q){if(!q.trim()||send.disabled)return;add(q,'user');input.value='';send.disabled=true;const bubble=add('Po e kontrolloj dokumentin...','assistant');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q})});const d=await r.json();if(!r.ok)throw new Error(d.detail||d.error||'Gabim');bubble.textContent=d.answer||'Nuk u mor përgjigje.'}catch(e){bubble.textContent='Nuk u arrit të merret përgjigjja. '+e.message}finally{send.disabled=false;input.focus();}}
+document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();ask(input.value)});document.querySelectorAll('.example').forEach(x=>x.addEventListener('click',()=>ask(x.textContent)));status();
+</script>
+</body></html>
